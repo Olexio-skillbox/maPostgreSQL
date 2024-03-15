@@ -1,7 +1,7 @@
 spring.application.name=postgres
-spring.datasource.url=jdbc:postgresql://192.168.56.11:5432/test
-spring.datasource.username=test
-spring.datasource.password=test
+spring.datasource.url=jdbc:postgresql://db_server:db_port/db_name
+spring.datasource.username=login
+spring.datasource.password=password
 
 spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
