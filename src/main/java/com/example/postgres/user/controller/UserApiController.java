@@ -7,6 +7,11 @@ import com.example.postgres.user.entity.UserEntity;
 import com.example.postgres.user.exception.UserNotFoundException;
 import com.example.postgres.user.repository.UserRepository;
 import com.example.postgres.user.routes.UserRoutes;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -74,6 +79,19 @@ public class UserApiController {
         return userRepository.findAll(example, pageable).stream().map(UserResponse::of).collect(Collectors.toList());
     }
 
+    // Block 08, Swagger
+    @Operation(summary = "Редактируем пользователя", description = "Редактирование существующего пользователя")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Пользователь отредактирован",
+                            content = { @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = UserResponse.class)) }),
+                    @ApiResponse(responseCode = "400", description = "Некорректный запрос",
+                            content = @Content),
+                    @ApiResponse(responseCode = "404", description = "Нет пользователя с таким id",
+                            content = @Content)
+            }
+    )
     // db-18:PUT/edit user
     @PutMapping(UserRoutes.BY_ID)
     public UserResponse edit(@PathVariable Long id, @RequestBody EditUserRequest request) throws UserNotFoundException {
