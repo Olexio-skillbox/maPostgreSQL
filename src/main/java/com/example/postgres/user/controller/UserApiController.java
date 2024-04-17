@@ -29,7 +29,7 @@ public class UserApiController {
     private final UserRepository userRepository;
 
     @GetMapping("/")
-    public UserEntity test() {
+    public UserEntity root() {
         UserEntity user = UserEntity.builder()
                 .firstName("Smoke")
                 .lastName("Test")
@@ -107,6 +107,12 @@ public class UserApiController {
     @DeleteMapping(UserRoutes.BY_ID)
     public String delete(@PathVariable Long id) {
         userRepository.deleteById(id);
+        return HttpStatus.OK.name();
+    }
+
+    // Block 09 - Spring Boot Security
+    @GetMapping(UserRoutes.TEST)
+    public String test() {
         return HttpStatus.OK.name();
     }
 }
