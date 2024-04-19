@@ -27,4 +27,7 @@ public class UserEntity {
     // private String firstName;
     protected String lastName;
     // private String lastName;
+    // Block 09 Spring Security
+    protected String email;
+    protected String password;
 }

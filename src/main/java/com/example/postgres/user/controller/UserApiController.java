@@ -1,9 +1,11 @@
 package com.example.postgres.user.controller;
 
-import com.example.postgres.user.dto.request.CreateUserRequest;
+import com.example.postgres.user.dto.request.RegistrationRequest;
 import com.example.postgres.user.dto.request.EditUserRequest;
 import com.example.postgres.user.dto.response.UserResponse;
 import com.example.postgres.user.entity.UserEntity;
+import com.example.postgres.user.exception.BadRequestException;
+import com.example.postgres.user.exception.UserAlreadyExistException;
 import com.example.postgres.user.exception.UserNotFoundException;
 import com.example.postgres.user.repository.UserRepository;
 import com.example.postgres.user.routes.UserRoutes;
@@ -12,21 +14,34 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@AllArgsConstructor
+// Block 09.2 Spring Security
+// @AllArgsConstructor
+@RequiredArgsConstructor
 public class UserApiController {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    // Block 09.2 Spring Security
+    @Value("${init.email}")
+    private String initUser;
+    @Value("${init.password}")
+    private String initPassword;
 
     @GetMapping("/")
     public UserEntity root() {
@@ -39,11 +54,20 @@ public class UserApiController {
     }
 
     // db-14: POST user API
-    @PostMapping(UserRoutes.CREATE)
-    public UserResponse create(@RequestBody CreateUserRequest request) {
+    @PostMapping(UserRoutes.REGISTRATION)
+    public UserResponse registration(@RequestBody RegistrationRequest request) throws BadRequestException, UserAlreadyExistException {
+        // Block 09.2 Spring Security
+        request.validate();
+
+        Optional<UserEntity> check = userRepository.findByEmail(request.getEmail());
+        if (check.isPresent()) throw new UserAlreadyExistException();
+
         UserEntity user = UserEntity.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
+                // Block 09.2 Spring Security
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
         user = userRepository.save(user);
@@ -93,9 +117,9 @@ public class UserApiController {
             }
     )
     // db-18:PUT/edit user
-    @PutMapping(UserRoutes.BY_ID)
-    public UserResponse edit(@PathVariable Long id, @RequestBody EditUserRequest request) throws UserNotFoundException {
-        UserEntity user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    @PutMapping(UserRoutes.EDIT)
+    public UserResponse edit(Principal principal, @RequestBody EditUserRequest request) throws UserNotFoundException {
+        UserEntity user = userRepository.findByEmail(principal.getName()).orElseThrow(UserNotFoundException::new);
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user = userRepository.save(user);
@@ -111,8 +135,26 @@ public class UserApiController {
     }
 
     // Block 09 - Spring Boot Security
-    @GetMapping(UserRoutes.TEST)
-    public String test() {
-        return HttpStatus.OK.name();
+    // @GetMapping(UserRoutes.TEST)
+    // Block 09.2 Spring Security
+    @GetMapping(UserRoutes.INIT)
+    public UserResponse init() {
+        Optional<UserEntity> checkUser = userRepository.findByEmail(initUser);
+        UserEntity user;
+
+        if (checkUser.isEmpty()) {
+            user = UserEntity.builder()
+                    .firstName("Default")
+                    .lastName("Default")
+                    .email(initUser)
+                    .password(passwordEncoder.encode(initPassword))
+                    .build();
+            user = userRepository.save(user);
+        } else {
+            user = checkUser.get();
+        }
+        // Block 09.2 Spring Security
+        // return HttpStatus.OK.name();
+        return UserResponse.of(user);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.postgres;
 
-import com.example.postgres.user.dto.request.CreateUserRequest;
+import com.example.postgres.user.dto.request.RegistrationRequest;
 import com.example.postgres.user.dto.request.EditUserRequest;
 import com.example.postgres.user.dto.response.UserResponse;
 import com.example.postgres.user.entity.UserEntity;
@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,7 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+
+//@SpringBootTest
 @AutoConfigureMockMvc
 public class WebTests {
     @Autowired
@@ -45,12 +45,12 @@ public class WebTests {
     }
     @Test
     void createTest() throws Exception {
-        CreateUserRequest request = CreateUserRequest.builder()
+        RegistrationRequest request = RegistrationRequest.builder()
                 .firstName("createUser")
                 .lastName("createUser")
                 .build();
         mockMvc.perform(
-          post(UserRoutes.CREATE)
+          post(UserRoutes.REGISTRATION)
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(request))
         )
@@ -89,7 +89,7 @@ public class WebTests {
         userRepository.save(user);
 
         EditUserRequest request = EditUserRequest.builder()
-                .id(user.getId())
+                //.id(user.getId())
                 .firstName("updateUser")
                 .lastName("updateUser")
                 .build();

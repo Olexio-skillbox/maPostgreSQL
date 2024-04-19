@@ -9,7 +9,8 @@ import lombok.Setter;
 // @Setter
 @Builder
 public class EditUserRequest {
-    private Long id;
+    // Block 09.2 Spring Security
+    // private Long id;
     private String firstName;
     private String lastName;
 }
